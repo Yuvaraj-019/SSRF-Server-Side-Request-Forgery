@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSRF LAB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .lab-title {
+            font-weight: bold;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .subtext {
+            font-size: 1.2rem;
+            color: #555;
+        }
+        .content-section {
+            text-align: left;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .content-section pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">SSRF LAB</a>
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/lab1">Lab 1</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/lab2">Lab 2</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/lab3">Lab 3</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/">My account</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container text-center mt-5">
+        <div class="lab-title">Welcome to SSRF LAB</div>
+        <p class="subtext">Select a lab from the navigation bar to explore SSRF vulnerabilities or click below for an introduction, fixes, or how it works.</p>
+        <div class="d-flex flex-column align-items-center gap-2 mt-3">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#ssrf-content" aria-expanded="false" aria-controls="ssrf-content">
+                Introduction
+            </button>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#fix-content" aria-expanded="false" aria-controls="fix-content">
+                Fixes
+            </button>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#howitworks-content" aria-expanded="false" aria-controls="howitworks-content">
+                How It Works
+            </button>
+        </div>
+
+        <!-- Introduction Content -->
+        <div class="collapse mt-4" id="ssrf-content">
+            <div class="card shadow-sm">
+                <div class="card-body content-section">
+                    <h1>SSRF Vulnerability Demonstration using Flask</h1>
+                    <p><strong>Labs:</strong></p>
+                    <ul>
+                        <li>Lab 1 – Basic SSRF</li>
+                        <li>Lab 2 – Internal API Access</li>
+                        <li>Lab 3 – URL Redirection SSRF</li>
+                    </ul>
+
+                    <h2>Introduction to SSRF</h2>
+                    <ul>
+                        <li><strong>SSRF (Server-Side Request Forgery)</strong> allows an attacker to make requests from the server.</li>
+                        <li>Server fetches external or internal resources on behalf of the attacker.</li>
+                        <li>Often exploited to access:
+                            <ul>
+                                <li>Internal APIs</li>
+                                <li>Metadata services</li>
+                                <li>Sensitive endpoints</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h2>Lab 1 – Basic SSRF</h2>
+                    <p><strong>Objective:</strong> Demonstrate basic SSRF via user-controlled URL input</p>
+                    <p><strong>How it works:</strong></p>
+                    <ul>
+                        <li>User inputs a URL</li>
+                        <li>Flask app fetches the content using <code>requests.get(url)</code></li>
+                        <li>No validation — any URL is accepted</li>
+                    </ul>
+                    <p><strong>Vulnerable Code:</strong></p>
+                    <pre><code>response = requests.get(url)</code></pre>
+                    <p><strong>Demo & Impact:</strong></p>
+                    <ul>
+                        <li>Try accessing: <code>https://yourusername.pythonanywhere.com/secret</code></li>
+                        <li>Server responds with sensitive data</li>
+                        <li><strong>Impact:</strong> Internal-only pages are exposed to the public through SSRF</li>
+                    </ul>
+
+                    <h2>Lab 2 – Internal API Access</h2>
+                    <p><strong>Objective:</strong> SSRF access to an internal-only API route</p>
+                    <p><strong>Scenario:</strong></p>
+                    <ul>
+                        <li>App has <code>/internal-api</code> not meant for external users</li>
+                        <li>User input can still access it by passing URL</li>
+                    </ul>
+                    <p><strong>Vulnerable Code:</strong></p>
+                    <pre><code>requests.get(url, timeout=3)</code></pre>
+                    <p><strong>Demo & Impact:</strong></p>
+                    <ul>
+                        <li>Enter URL: <code>https://yourusername.pythonanywhere.com/internal-api</code></li>
+                        <li>SSRF enables access to internal API from external input</li>
+                        <li><strong>Impact:</strong> Internal-only services can be discovered or attacked</li>
+                    </ul>
+
+                    <h2>Lab 3 – SSRF via Redirection</h2>
+                    <p><strong>Objective:</strong> Demonstrate SSRF with URL redirection</p>
+                    <ul>
+                        <li>User submits a URL</li>
+                        <li>That URL redirects to an internal endpoint (e.g., <code>/internal-secret</code>)</li>
+                        <li>Server follows redirect and leaks internal content</li>
+                    </ul>
+                    <p><strong>Redirection Code:</strong></p>
+                    <pre><code>return '', 302, {'Location': target}</code></pre>
+                    <p><strong>Demo & Impact:</strong></p>
+                    <ul>
+                        <li>Enter URL: <code>https://yourusername.pythonanywhere.com/redirect?to=https://yourusername.pythonanywhere.com/internal-secret</code></li>
+                        <li>SSRF triggered through open redirect</li>
+                        <li><strong>Impact:</strong> Attackers can access protected resources via redirection</li>
+                    </ul>
+
+                    <h2>Mitigations</h2>
+                    <ul>
+                        <li>Whitelist domains or IPs</li>
+                        <li>Block internal IP ranges (e.g., 127.0.0.1, 169.254.169.254)</li>
+                        <li>Disable redirects for user-controlled requests</li>
+                        <li>Set proper timeouts and limits</li>
+                        <li>Log and alert suspicious outbound requests</li>
+                    </ul>
+
+                    <h2>Conclusion</h2>
+                    <ul>
+                        <li><strong>SSRF is dangerous</strong> even with simple setups</li>
+                        <li>Labs show increasing severity:
+                            <ul>
+                                <li>Basic Fetch → Internal API → Redirection</li>
+                            </ul>
+                        </li>
+                        <li>Secure your request logic before going to production!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fix Content -->
+        <div class="collapse mt-4" id="fix-content">
+            <div class="card shadow-sm">
+                <div class="card-body content-section">
+                    <h1>Fixes for SSRF Vulnerabilities</h1>
+
+                    <h2>Lab 1 – Fix: Basic SSRF</h2>
+                    <p><strong>Issue:</strong> Directly fetches any user-supplied URL.</p>
+                    <p><strong>Fix:</strong> Allow only trusted domains.</p>
+                    <pre><code>ALLOWED = ["example.com"]
+if urlparse(url).hostname in ALLOWED:
+    response = requests.get(url)
+else:
+    content = "Blocked URL"</code></pre>
+
+                    <h2>Lab 2 – Fix: Internal API Access</h2>
+                    <p><strong>Issue:</strong> Internal APIs can be accessed via SSRF.</p>
+                    <p><strong>Fix:</strong> Block private IP ranges.</p>
+                    <pre><code>ip = socket.gethostbyname(urlparse(url).hostname)
+if ipaddress.ip_address(ip).is_private:
+    content = "Access denied"
+else:
+    response = requests.get(url)</code></pre>
+
+                    <h2>Lab 3 – Fix: Redirect-Based SSRF</h2>
+                    <p><strong>Issue:</strong> Open redirect to internal endpoints.</p>
+                    <p><strong>Fix:</strong> Allow only safe redirect targets.</p>
+                    <pre><code>if target.startswith("https://yourusername.pythonanywhere.com"):
+    return redirect(target)
+else:
+    return "Invalid redirect"</code></pre>
+
+                    <h2>General Tips</h2>
+                    <ul>
+                        <li>✅ Use URL/domain allowlists</li>
+                        <li>⛔ Block internal IPs (<code>127.0.0.1</code>, <code>169.254.x.x</code>)</li>
+                        <li>🚫 Disable redirects in requests</li>
+                        <li>⏱ Add timeouts & size limits</li>
+                        <li>🧼 Always validate user input</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Content -->
+        <div class="collapse mt-4" id="howitworks-content">
+            <div class="card shadow-sm">
+                <div class="card-body content-section">
+                    <h1>How the SSRF Lab Works</h1>
+                    <p>The SSRF Vulnerability Demonstration is a Flask app showcasing Server-Side Request Forgery (SSRF) vulnerabilities across three labs. Hosted on PythonAnywhere (e.g., <code>https://yourusername.pythonanywhere.com</code>), it shows how attackers exploit user-controlled URL inputs to fetch internal resources.</p>
+
+                    <h2>Functionality</h2>
+                    <ul>
+                        <li><strong>Purpose:</strong> Educate on SSRF by allowing users to fetch URLs, exposing internal pages, APIs, or redirected endpoints.</li>
+                        <li><strong>Structure:</strong>
+                            <ul>
+                                <li><strong>Landing Page (/):</strong> <code>index.html</code> with navbar (Home, Lab 1, Lab 2, Lab 3, My account), "Introduction" button (toggles SSRF explanation), and "Fix" button (toggles fixes).</li>
+                                <li><strong>Lab 1 (/lab1):</strong> Basic SSRF (<code>lab1.html</code>). Shop with 6 product cards; buttons show a form to input URLs (e.g., <code>https://yourusername.pythonanywhere.com/secret</code>). Fetches content via <code>requests.get</code>, displays in <code>&lt;pre&gt;</code>.</li>
+                                <li><strong>Lab 2 (/lab2):</strong> Internal API Access (<code>lab2.html</code>). 3 cards (Camera, Inventory, Admin); buttons show a form to input URLs (e.g., <code>https://yourusername.pythonanywhere.com/internal-api</code>). Fetches and displays API data.</li>
+                                <li><strong>Lab 3 (/lab3):</strong> URL Redirection SSRF (<code>lab3.html</code>). “Try Redirection” button shows a form for URLs (e.g., <code>https://yourusername.pythonanywhere.com/redirect?to=https://yourusername.pythonanywhere.com/internal-secret</code>). Fetches redirected content.</li>
+                                <li><strong>Internal Routes:</strong>
+                                    <ul>
+                                        <li><code>/secret</code>: Renders <code>secret.html</code> (sensitive data).</li>
+                                        <li><code>/internal-api</code>: Renders <code>internal_api.html</code> (API data).</li>
+                                        <li><code>/internal-secret</code>: Renders <code>internal_secret.html</code> (restricted resource).</li>
+                                        <li><code>/redirect</code>: Redirects to <code>to</code> parameter (Lab 3).</li>
+                                        <li><code>/fetch</code>: Legacy POST route for Lab 3 (fetches URLs).</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><strong>SSRF Mechanism:</strong> Uses <code>requests.get(url, timeout=3, allow_redirects=True)</code> without validation, allowing access to internal routes.</li>
+                        <li><strong>PythonAnywhere:</strong> Uses public URLs (e.g., <code>https://yourusername.pythonanywhere.com/secret</code>) since <code>127.0.0.1</code> is blocked.</li>
+                    </ul>
+
+                    <h2>Lab Details</h2>
+                    <ul>
+                        <li><strong>Lab 1:</strong> Fetches any URL, exposing <code>/secret</code>. <strong>Demo:</strong> Input <code>https://yourusername.pythonanywhere.com/secret</code> to see sensitive data.</li>
+                        <li><strong>Lab 2:</strong> Accesses internal API (<code>/internal-api</code>). <strong>Demo:</strong> Input <code>https://yourusername.pythonanywhere.com/internal-api</code> to see API data.</li>
+                        <li><strong>Lab 3:</strong> Uses <code>/redirect</code> to access <code>/internal-secret</code>. <strong>Demo:</strong> Input <code>https://yourusername.pythonanywhere.com/redirect?to=https://yourusername.pythonanywhere.com/internal-secret</code>.</li>
+                    </ul>
+
+                    <h2>Introduction & Fixes</h2>
+                    <ul>
+                        <li><strong>Introduction:</strong> (<code>index.html</code>) Explains SSRF, labs, vulnerable code, demos, impacts, mitigations, conclusion.</li>
+                        <li><strong>Fixes:</strong> (<code>index.html</code>) Code fixes for each lab (whitelist domains, block private IPs, restrict redirects) and general tips.</li>
+                    </ul>
+
+                    <h2>Folder Structure</h2>
+                    <pre><code>ssrf_final/
+├── app.py
+├── templates/
+│   ├── index.html        # Landing page with Intro/Fix buttons
+│   ├── lab1.html         # Lab 1: Basic SSRF (shop)
+│   ├── lab2.html         # Lab 2: Internal API
+│   ├── lab3.html         # Lab 3: Redirection SSRF
+│   ├── secret.html       # Sensitive page for Lab 1
+│   ├── internal_api.html # API data for Lab 2
+│   ├── internal_secret.html # Restricted page for Lab 3
+</code></pre>
+
+                    <h2>File Roles</h2>
+                    <ul>
+                        <li><strong>app.py:</strong> Flask app with all routes, handles URL fetching.</li>
+                        <li><strong>index.html:</strong> Landing page with navbar, Intro/Fix content.</li>
+                        <li><strong>lab1.html:</strong> Shop interface for Lab 1 SSRF.</li>
+                        <li><strong>lab2.html:</strong> API card interface for Lab 2 SSRF.</li>
+                        <li><strong>lab3.html:</strong> Redirection interface for Lab 3 SSRF.</li>
+                        <li><strong>secret.html:</strong> Sensitive data page.</li>
+                        <li><strong>internal_api.html:</strong> Internal API data.</li>
+                        <li><strong>internal_secret.html:</strong> Restricted resource.</li>
+                    </ul>
+
+                    <h2>Notes</h2>
+                    <ul>
+                        <li><strong>Hosting:</strong> On PythonAnywhere, use public URLs. Setup: Upload files, install <code>flask</code>/<code>requests</code>, configure WSGI.</li>
+                        <li><strong>Security:</strong> Vulnerable app; use password protection for public demos.</li>
+                        <li><strong>Testing:</strong> Visit <code>https://yourusername.pythonanywhere.com</code>, test lab URLs, toggle Intro/Fix buttons.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

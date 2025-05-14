@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSRF Demo Shop - Lab 1</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .product-card img {
+            height: 200px;
+            object-fit: cover;
+        }
+        .shop-title {
+            font-weight: bold;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .subtext {
+            font-size: 1.2rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">SSRF Final Demo</a>
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/lab1">Lab 1</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/lab2">Lab 2</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/lab3">Lab 3</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">My account</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container text-center mt-5">
+        <div class="shop-title">WE LIKE TO SHOP</div>
+        <p class="subtext">Click below to simulate SSRF via product URL fetch</p>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
+            {% for i in range(1, 7) %}
+            <div class="col">
+                <div class="card product-card shadow-sm h-100">
+                    <img src="https://picsum.photos/400/200?random={{ i }}" class="card-img-top" alt="Product Image">
+                    <div class="card-body">
+                        <h5 class="card-title">Product {{ i }}</h5>
+                        <p class="card-text">$ {{ 10 + i*5 }}.99</p>
+                        <button class="btn btn-outline-primary" onclick="showSSRFForm()">View details</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="card shadow mt-4" id="ssrf-form" style="display:none;">
+            <div class="card-header bg-primary text-white">Simulate SSRF Request</div>
+            <div class="card-body">
+                <form method="post" action="/lab1" class="row g-3">
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="url" id="url-input" placeholder="Enter a URL (e.g., http://127.0.0.1:5000/secret)">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Fetch</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if content %}
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Fetched Response</h5>
+            </div>
+            <div class="card-body bg-light">
+                <pre class="p-2 bg-white border">{{ content }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <footer class="text-center mt-5 mb-3">
+        <p class="text-muted">SSRF Lab 1 - Product URL Fetch</p>
+    </footer>
+
+    <script>
+        function showSSRFForm() {
+            document.getElementById('ssrf-form').style.display = 'block';
+            document.getElementById('url-input').value = '';
+        }
+    </script>
+
+</body>
+</html>
